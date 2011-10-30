@@ -20,12 +20,15 @@ public class RamboRunner extends MovieClip
     private var floorData:BitmapData;
     private var floor:Bitmap;
     private var floor2:Bitmap;
-    private var initialVelocity:uint = 2;
-    private var acceleration:Number = 0.2;
-    private var accelerator:Number = 0.5;
+    
+    private var elapsedTime:Number = 0;
+    private var previousTime:Number = 0;
+    private var previousDate:Number = 0;
+
+    private var initialVelocity:Number = 2;
+    private var acceleration:Number = 0.5;
+    private var levelUpSeconds:Number = 30;
     private var distance:uint = 0;
-    private var distanceModifier = 100;
-    private var levelBarrier:uint = 300;
 
     private var logicContainer:Sprite;
     private var stageBitmap:Bitmap;
@@ -56,7 +59,7 @@ public class RamboRunner extends MovieClip
 
         startGame();
 
-        stageBitmap = new Bitmap(new BitmapData(320, 160, true)); 
+        stageBitmap = new Bitmap(new BitmapData(320 * logicContainer.scaleX, 160 * logicContainer.scaleY, true)); 
         this.addEventListener(Event.ENTER_FRAME, drawStage);
         addChild(stageBitmap);
     }
@@ -89,27 +92,30 @@ public class RamboRunner extends MovieClip
 
     private function updateGame(event:Event):void
     {
-        var velocity = initialVelocity + (acceleration * distance / distanceModifier);
-        //Debug.trace(velocity);
-        floor.x -= velocity;
-        floor2.x -= velocity;
-
-        if(floor.x <= -320) floor.x = floor2.x + 321;
-        if(floor2.x <= -320) floor2.x = floor.x + 321;
+        var now = new Date().getTime();
+        var timeDiff = now - previousDate;
+        previousTime = Math.floor(elapsedTime / 1000);
+        elapsedTime += timeDiff;
+        previousDate = now;
         
-        distance = (distance + 1) % levelBarrier;
-        if(distance == 0)
-        {
-            Debug.trace('Speed Up! ' + velocity + ' > ' + initialVelocity + '?');
+        floor.x -= initialVelocity;
+        floor2.x -= initialVelocity;
 
-            if(Math.floor(velocity) > initialVelocity)
+        if(floor.x <= -320) floor.x = floor2.x + 320;
+        if(floor2.x <= -320) floor2.x = floor.x + 320;
+        
+        //Speeding up
+        var roundTime = Math.floor(elapsedTime / 1000);
+        if(roundTime > previousTime)
+        {
+            if(roundTime % levelUpSeconds == 0)
             {
-                Debug.trace('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
-                initialVelocity++;
-                accelerator /= 2;
-                distanceModifier *= 10;
+                initialVelocity += acceleration;
+                acceleration -= acceleration / 4;
+                levelUpSeconds--;
+                levelUpSeconds = (levelUpSeconds < 10)? 10 : levelUpSeconds;
+                Debug.trace('speed up' + initialVelocity);
             }
-            acceleration += accelerator;
         }
 
         gui.setDistance(distance);
@@ -132,6 +138,7 @@ public class RamboRunner extends MovieClip
             {
                 gui.startGame();
                 gameStarted = true;
+                previousDate = new Date().getTime();
                 logicContainer.addEventListener(Event.ENTER_FRAME, updateGame, false, 0, true);
             }
 
