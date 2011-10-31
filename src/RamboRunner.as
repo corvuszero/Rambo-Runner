@@ -20,6 +20,8 @@ public class RamboRunner extends MovieClip
     private var floorData:BitmapData;
     private var floor:Bitmap;
     private var floor2:Bitmap;
+
+    private var player:Player;
     
     private var elapsedTime:Number = 0;
     private var previousTime:Number = 0;
@@ -28,6 +30,7 @@ public class RamboRunner extends MovieClip
     private var initialVelocity:Number = 2;
     private var acceleration:Number = 0.5;
     private var levelUpSeconds:Number = 30;
+    private var levelUpCounter = 0;
     private var distance:uint = 0;
 
     private var logicContainer:Sprite;
@@ -46,6 +49,8 @@ public class RamboRunner extends MovieClip
         logicContainer.graphics.beginFill(0x000000);
         logicContainer.graphics.drawRect(0,0, 320, 160);
         logicContainer.graphics.endFill();
+
+        player = new Player();
     }
 
     public function onAddedToStage(event:Event):void
@@ -78,6 +83,8 @@ public class RamboRunner extends MovieClip
 
         logicContainer.addChild(floor);
         logicContainer.addChild(floor2);
+
+        logicContainer.addChild(player);
     }
 
     private function startGame():void
@@ -93,11 +100,13 @@ public class RamboRunner extends MovieClip
     private function updateGame(event:Event):void
     {
         var now = new Date().getTime();
-        var timeDiff = now - previousDate;
+        var timeDiff:uint = now - previousDate;
         previousTime = Math.floor(elapsedTime / 1000);
         elapsedTime += timeDiff;
         previousDate = now;
         
+        player.update(timeDiff);
+
         floor.x -= initialVelocity;
         floor2.x -= initialVelocity;
 
@@ -108,13 +117,16 @@ public class RamboRunner extends MovieClip
         var roundTime = Math.floor(elapsedTime / 1000);
         if(roundTime > previousTime)
         {
-            if(roundTime % levelUpSeconds == 0)
+            levelUpCounter++;
+
+            if(levelUpCounter == levelUpSeconds)
             {
                 initialVelocity += acceleration;
-                acceleration -= acceleration / 4;
+                acceleration -= acceleration / 5;
                 levelUpSeconds--;
+                levelUpCounter = 0;
                 levelUpSeconds = (levelUpSeconds < 10)? 10 : levelUpSeconds;
-                Debug.trace('speed up' + initialVelocity);
+                Debug.trace('speed up' + initialVelocity + ' newLevelUpSeconds = ' + levelUpSeconds);
             }
         }
 
@@ -133,6 +145,7 @@ public class RamboRunner extends MovieClip
             if(gameStarted)
             {
                 //TODO: Jump and shoot
+                player.jump();
             }
             else
             {
