@@ -8,7 +8,10 @@ import com.hexagonstar.util.debug.Debug;
 public class Player extends Sprite
 {
     private var state:String;
-    private var yMagnitude;
+    
+    private var velocity:Number = -13;
+    private var gravity:Number = 0.5;
+    private var currentVelocity:Number;
 
     public function Player()
     {
@@ -19,51 +22,55 @@ public class Player extends Sprite
         x = 16;
         y = 160 - (height * 1.5);
     
-        Debug.trace(height);
-        setState('still');
+        cacheAsBitmap = true;
+        state = 'run';
     }
 
-    public function setState(newState:String):void
+    public function init():void
     {
-        if(newState == state) return;
-
-        switch(newState)
-        {
-            case 'jump':
-                jump();
-            break;
-            
-            default:
-            break;
-        }
+        this.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown, false, 0, true);
+        this.addEventListener(KeyboardEvent.KEY_UP, onKeyUp, false, 0, true);
     }
 
     public function update(delta:uint):void
     {
-        if(state == 'jump') jumpEvent(delta);
-    }
-
-    public function jump():void
-    {
-        if(state == 'jump') return;
-
-        state = 'jump';
-        yMagnitude = -1;
+        if(state == 'jump' || state == 'fall') jumpEvent(delta);
     }
 
     private function jumpEvent(delta:uint):void
     {
-        y += 0.2 * delta * yMagnitude;
+        y += currentVelocity;
+        currentVelocity += gravity;
 
-        if(y <= 16)
-        {
-            yMagnitude = 1;
-        }
+        if(currentVelocity == 0) state = 'fall';
 
         if(y >= 160 - (height * 1.5))
         {
             y = 160 - (height * 1.5);
             state = 'run';
+        }
+    }
+
+    private function onKeyDown(event:KeyboardEvent):void
+    {
+        if(state == 'run')
+        {
+            state = 'jump';
+            currentVelocity = velocity;
+        }
+
+        if(state == 'fall')
+        {
+            Debug.trace('Shoot!');
+        }
+    }
+
+    private function onKeyUp(event:KeyboardEvent):void
+    {
+        if(state == 'jump')
+        {
+            currentVelocity = 0;
+            state = 'fall'; 
         }
     }
 }

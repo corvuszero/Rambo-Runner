@@ -95,6 +95,8 @@ public class RamboRunner extends MovieClip
         }
 
         stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown, false, 0, true); 
+        stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp, false, 0, true); 
+        player.init();
     }
 
     private function updateGame(event:Event):void
@@ -135,8 +137,6 @@ public class RamboRunner extends MovieClip
 
     private function onKeyDown(event:KeyboardEvent):void
     {
-        stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
-        stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp, false, 0, true); 
 
         //Space Key
         if(event.charCode == 32)
@@ -144,8 +144,8 @@ public class RamboRunner extends MovieClip
             //Start Moving everything
             if(gameStarted)
             {
-                //TODO: Jump and shoot
-                player.jump();
+                //TODO: shoot
+                player.dispatchEvent(event);
             }
             else
             {
@@ -160,13 +160,10 @@ public class RamboRunner extends MovieClip
 
     private function onKeyUp(event:KeyboardEvent):void
     {
-        stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUp);
-        stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown, false, 0, true);
-
         //Space Key
         if(event.charCode == 32)
         {
-        
+            player.dispatchEvent(event); 
         }
     }
 
